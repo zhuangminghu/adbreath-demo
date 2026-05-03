@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdBreath — AI 智能广告引擎</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background: radial-gradient(ellipse at top, #1e1b4b 0%, var(--bg) 70%);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    .hero .tagline { font-size: clamp(1rem, 2.5vw, 1.4rem); color: var(--text-muted); margin-bottom: 0.5rem; }
+    .hero .subtitle { font-size: 0.9rem; color: var(--text-muted); opacity: 0.7; margin-bottom: 2.5rem; }
+
+    .start-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 1rem 2.5rem; font-size: 1.1rem; font-weight: 600;
+      color: white; background: linear-gradient(135deg, var(--primary), #7c3aed);
+      border: none; border-radius: 50px; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s; text-decoration: none;
+    }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.4); }
+
+    /* ===== DEMO SECTION ===== */
+    .demo-section { padding: 3rem 1.5rem; max-width: 1200px; margin: 0 auto; }
+    .demo-section h2 { text-align: center; font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .demo-section .section-sub { text-align: center; color: var(--text-muted); margin-bottom: 2rem; }
+
+    /* Mode Toggle */
+    .mode-toggle {
+      display: flex; justify-content: center; margin: 0 auto 2rem;
+      background: var(--bg-card); border-radius: 12px; padding: 4px; width: fit-content;
+    }
+    .mode-btn {
+      padding: 0.7rem 2rem; font-size: 0.95rem; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: all 0.3s; background: transparent; color: var(--text-muted);
+    }
+    .mode-btn.active-original { background: var(--danger); color: white; }
+    .mode-btn.active-ai { background: var(--success); color: white; }
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 16px;
+      padding: 3rem 2rem; text-align: center; margin-bottom: 2rem;
+      transition: border-color 0.2s, background 0.2s; cursor: pointer;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--primary-light); background: rgba(99,102,241,0.05);
+    }
+    .upload-zone .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .upload-zone .upload-text { font-size: 1rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .upload-zone .upload-hint { font-size: 0.8rem; color: var(--text-muted); opacity: 0.6; }
+    .upload-zone input[type="file"] { display: none; }
+
+    /* Player Container */
+    .player-container { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; margin-bottom: 2rem; }
+    @media (max-width: 900px) { .player-container { grid-template-columns: 1fr; } }
+
+    /* Video Player */
+    .video-wrapper {
+      background: #000; border-radius: 16px; overflow: hidden;
+      position: relative; aspect-ratio: 16 / 9;
+    }
+    .video-wrapper video { width: 100%; height: 100%; object-fit: contain; }
+
+    /* Overlay Canvas (for frame capture) */
+    .video-wrapper canvas { display: none; }
+
+    /* Ad Overlay */
+    .ad-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .ad-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    .ad-overlay .ad-label {
+      position: absolute; top: 1rem; left: 1rem;
+      background: var(--warning); color: #000;
+      font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 6px;
+    }
+    .ad-overlay .ad-skip {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1px solid rgba(255,255,255,0.3); padding: 6px 16px;
+      border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+    }
+    .ad-overlay .ad-skip:hover { background: rgba(255,255,255,0.25); }
+    .ad-overlay .ad-skip:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ad-overlay .ad-timer {
+      position: absolute; bottom: 1rem; right: 1rem;
+      color: var(--text-muted); font-size: 0.8rem;
+    }
+
+    .ad-traditional { text-align: center; }
+    .ad-traditional .ad-brand { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .ad-traditional .ad-desc { color: var(--text-muted); }
+
+    /* Interactive Ad Card */
+    .ad-card {
+      background: var(--bg-card); border-radius: 16px; padding: 1.5rem;
+      width: min(380px, 85%); text-align: center;
+      border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .ad-card-header {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--success);
+    }
+    .ai-badge {
+      background: var(--success); color: white;
+      padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+    }
+    .ad-question { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; line-height: 1.5; }
+    .ad-options { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+    .ad-option {
+      flex: 1; padding: 0.9rem 0.5rem; background: var(--bg-card-hover);
+      border: 2px solid var(--border); border-radius: 12px;
+      cursor: pointer; transition: all 0.2s; text-align: center; font-size: 0.85rem; color: var(--text);
+    }
+    .ad-option:hover { border-color: var(--primary-light); background: rgba(99,102,241,0.1); }
+    .ad-option.selected { border-color: var(--success); background: rgba(16,185,129,0.15); }
+
+    .ad-brand-reveal {
+      display: none; padding: 1rem; background: rgba(16,185,129,0.1);
+      border-radius: 10px; border: 1px solid rgba(16,185,129,0.2); margin-bottom: 0.75rem;
+    }
+    .ad-brand-reveal.visible { display: block; animation: fadeInUp 0.4s ease; }
+    .ad-brand-name { font-weight: 700; color: var(--success); font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .ad-brand-msg { font-size: 0.85rem; color: var(--text-muted); }
+    .ad-easter-egg {
+      display: none; font-size: 0.8rem; color: var(--primary-light);
+      font-style: italic; margin-top: 0.5rem;
+    }
+    .ad-easter-egg.visible { display: block; animation: fadeInUp 0.4s ease 0.2s both; }
+
+    .ad-timer-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
+    .ad-timer-fill { height: 100%; background: var(--success); border-radius: 2px; width: 100%; transition: width linear; }
+    .ad-auto-dismiss { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Timeline */
+    .timeline { padding: 0.5rem 0; margin-top: 0.5rem; }
+    .timeline-bar { position: relative; height: 8px; background: var(--bg-card); border-radius: 4px; cursor: pointer; }
+    .timeline-tooltip {
+      position: absolute; bottom: 14px; transform: translateX(-50%);
+      background: var(--bg-card-hover); color: var(--text); font-size: 0.7rem;
+      padding: 2px 8px; border-radius: 4px; pointer-events: none;
+      opacity: 0; transition: opacity 0.15s; white-space: nowrap;
+      border: 1px solid var(--border);
+    }
+    .timeline-bar:hover .timeline-tooltip { opacity: 1; }
+    .timeline-progress {
+      height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 4px; width: 0%; transition: width 0.3s linear;
+    }
+    .timeline-markers { position: absolute; inset: 0; pointer-events: none; }
+    .timeline-marker { position: absolute; top: -4px; width: 4px; height: 16px; border-radius: 2px; }
+    .timeline-marker.primary { background: var(--success); }
+    .timeline-marker.secondary { background: #22c55e; opacity: 0.5; }
+    .timeline-marker.forbidden { background: var(--danger); opacity: 0.7; }
+    .timeline-marker.ad-point { background: var(--warning); width: 6px; }
+    .timeline-time {
+      display: flex; justify-content: space-between;
+      font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;
+    }
+
+    /* Controls */
+    .controls { display: flex; justify-content: center; gap: 1rem; margin: 1rem 0 2rem; flex-wrap: wrap; }
+    .ctrl-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.5rem; font-size: 0.9rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+      transition: all 0.2s; background: var(--bg-card); color: var(--text);
+    }
+    .ctrl-btn:hover { background: var(--bg-card-hover); border-color: var(--primary-light); }
+    .ctrl-btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+    .ctrl-btn.primary:hover { background: var(--primary-light); }
+    .ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* AI Panel */
+    .ai-panel {
+      background: var(--bg-card); border-radius: 16px; padding: 1.25rem;
+      border: 1px solid var(--border); height: fit-content;
+    }
+    .ai-panel h3 { font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .ai-log { list-style: none; font-size: 0.8rem; max-height: 500px; overflow-y: auto; }
+    .ai-log li {
+      padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+      display: flex; gap: 0.5rem; align-items: flex-start;
+      opacity: 0; transform: translateX(-10px); transition: all 0.3s;
+    }
+    .ai-log li.visible { opacity: 1; transform: translateX(0); }
+    .log-icon { flex-shrink: 0; width: 20px; text-align: center; }
+    .log-text { color: var(--text-muted); line-height: 1.4; }
+    .log-text strong { color: var(--text); }
+    li.log-danger .log-text { color: #fca5a5; }
+    li.log-success .log-text { color: #6ee7b7; }
+    li.log-warning .log-text { color: #fcd34d; }
+
+    /* Emotion bar */
+    .emotion-bar {
+      display: flex; align-items: center; gap: 6px; margin-top: 4px;
+    }
+    .emotion-bar-track {
+      flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .emotion-bar-fill {
+      height: 100%; border-radius: 2px; transition: width 0.6s ease;
+    }
+    .emotion-bar-val {
+      font-size: 0.7rem; color: var(--text-muted); min-width: 30px; text-align: right;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute; inset: 0; background: rgba(15,23,42,0.85);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 30; border-radius: 16px;
+    }
+    .loading-spinner-lg {
+      width: 40px; height: 40px; border: 3px solid var(--border);
+      border-top-color: var(--primary-light); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin-bottom: 1rem;
+    }
+    .loading-text { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Breathing spot tag */
+    .spot-tag {
+      display: inline-block; font-size: 0.65rem; padding: 1px 6px;
+      border-radius: 4px; margin-left: 4px; font-weight: 600;
+    }
+    .spot-tag.primary { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+    .spot-tag.secondary { background: rgba(34,197,94,0.15); color: #86efac; }
+
+    /* Analyze Progress */
+    .analyze-progress {
+      background: var(--bg-card); border-radius: 12px; padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem; border: 1px solid var(--border); display: none;
+    }
+    .analyze-progress.visible { display: block; }
+    .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 0.5rem 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success), #22c55e); border-radius: 3px; width: 0%; transition: width 0.3s; }
+    .progress-text { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* Features */
+    .features-section { padding: 4rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .features-section h2 { text-align: center; font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .features-section .section-sub { text-align: center; color: var(--text-muted); margin-bottom: 3rem; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .feature-card {
+      background: var(--bg-card); border-radius: 16px; padding: 1.5rem;
+      border: 1px solid var(--border); transition: transform 0.2s, border-color 0.2s;
+    }
+    .feature-card:hover { transform: translateY(-4px); border-color: var(--primary-light); }
+    .feature-card .feature-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+
+    .footer {
+      text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);
+      font-size: 0.8rem; border-top: 1px solid var(--border);
+    }
+
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 0.75rem 1.5rem; border-radius: 10px; font-size: 0.85rem;
+      z-index: 100; transition: transform 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .toast.visible { transform: translateX(-50%) translateY(0); }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--text-muted); border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <h1>AdBreath</h1>
+    <p class="tagline">让广告在对的时间、以对的方式出现</p>
+    <p class="subtitle">基于小米 MiMo 多模态 AI 的智能广告引擎 · 腾讯视频校园大赛参赛作品</p>
+    <a href="#demo" class="start-btn" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">开始体验 ↓</a>
+  </section>
+
+  <!-- DEMO -->
+  <section class="demo-section" id="demo">
+    <h2>体验 AdBreath AI 广告引擎</h2>
+    <p class="section-sub">上传一段视频，让 AI 真正分析剧情，找到最佳广告位</p>
+
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn" id="btn-original" onclick="switchMode('original')"> 原始模式</button>
+      <button class="mode-btn active-ai" id="btn-ai" onclick="switchMode('ai')"> AI 模式</button>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon"> </div>
+      <div class="upload-text">点击或拖拽上传视频文件</div>
+      <div class="upload-hint">支持 MP4 格式，建议 60 秒以内短片</div>
+      <input type="file" id="fileInput" accept="video/*">
+    </div>
+
+    <!-- Analyze Progress -->
+    <div class="analyze-progress" id="analyzeProgress">
+      <div class="progress-text" id="progressText">准备中...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <!-- Analysis Status Banner -->
+    <div id="analysisStatus" style="display:none; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.5rem; text-align:center; color:#6ee7b7; font-size:0.9rem;"></div>
+
+    <!-- Player + AI Panel -->
+    <div class="player-container" id="playerContainer" style="display:none;">
+      <div>
+        <div class="video-wrapper" id="videoWrapper">
+          <video id="videoPlayer" preload="auto"></video>
+          <canvas id="captureCanvas"></canvas>
+
+          <!-- Ad Overlay -->
+          <div class="ad-overlay" id="adOverlay">
+            <div class="ad-label">广告</div>
+            <button class="ad-skip" id="adSkipBtn" disabled>跳过广告</button>
+            <div class="ad-timer" id="adTimerText">5s 后可跳过</div>
+            <div class="ad-traditional" id="adTraditional" style="display:none;">
+              <div class="ad-brand" id="adBrandName">XX 汽车</div>
+              <div class="ad-desc" id="adBrandDesc">驾驭未来，从心出发</div>
+            </div>
+            <div class="ad-card" id="adCard" style="display:none;">
+              <div class="ad-card-header"><span class="ai-badge">AI 生成</span><span>情境化互动广告</span></div>
+              <div class="ad-question" id="adQuestion"></div>
+              <div class="ad-options" id="adOptions">
+                <div class="ad-option" onclick="selectOption(this,0)"><div id="opt0"></div></div>
+                <div class="ad-option" onclick="selectOption(this,1)"><div id="opt1"></div></div>
+              </div>
+              <div class="ad-brand-reveal" id="adBrandReveal">
+                <div class="ad-brand-name" id="adRevealName"></div>
+                <div class="ad-brand-msg" id="adRevealMsg"></div>
+              </div>
+              <div class="ad-easter-egg" id="adEasterEgg"></div>
+              <div class="ad-timer-bar"><div class="ad-timer-fill" id="adTimerFill"></div></div>
+              <div class="ad-auto-dismiss">不做选择？<span id="dismissCountdown">10</span>秒后自动继续</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+          <!-- Emotion wave visualization -->
+          <div id="emotionWave" style="height:32px; display:flex; align-items:flex-end; gap:1px; margin-bottom:4px; cursor:pointer; border-radius:4px;"></div>
+          <div class="timeline-bar" id="timelineBar">
+            <div class="timeline-progress" id="timelineProgress"></div>
+            <div class="timeline-markers" id="timelineMarkers"></div>
+            <div class="timeline-tooltip" id="timelineTooltip">00:00</div>
+          </div>
+          <div class="timeline-time">
+            <span id="timeCurrent">00:00</span>
+            <span id="timeTotal">00:00</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="ctrl-btn primary" id="playBtn" onclick="togglePlay()">▶️ 播放</button>
+          <button class="ctrl-btn" onclick="resetPlayback()"> 重置</button>
+          <button class="ctrl-btn" id="analyzeBtn" onclick="startAnalysis()" style="display:none;"> 分析视频</button>
+        </div>
+      </div>
+
+      <!-- AI Panel -->
+      <div class="ai-panel" id="aiPanel">
+        <h3> AI 决策可视化</h3>
+        <ul class="ai-log" id="aiLog">
+          <li class="visible"><span class="log-icon">⏸️</span><span class="log-text">等待视频上传...</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section">
+    <h2>三大核心模块</h2>
+    <p class="section-sub">让广告从「打扰」变成「对话」</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"> </div>
+        <h3>呼吸位探测器</h3>
+        <p>多模态 AI 分析视频帧画面，精准识别剧情节奏与情绪。高能心流区禁止插入，转场呼吸位智能推荐。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"> </div>
+        <h3>三层智能匹配</h3>
+        <p>内容+用户偏好交集优先，仅内容关联次之，仅用户偏好兜底。找"合理契合点"而非硬对齐。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"> </div>
+        <h3>情境化互动广告</h3>
+        <p>AI 根据广告主素材池+剧情语义实时生成互动选项。从"做选择题"升级为"情绪表态"。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>AdBreath — 腾讯视频校园大赛参赛作品 · 命题赛道二</p>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== STATE =====
+    const S = {
+      mode: 'ai',
+      videoLoaded: false,
+      analyzing: false,
+      analyzed: false,
+      playing: false,
+      adShowing: false,
+      adSkipReady: false,
+      selectedOption: null,
+      dismissCountdown: 10,
+      breathingSpots: [],
+      frameAnalysis: [],
+      generatedAds: {},
+      forbiddenZones: [],
+      adTriggeredSet: new Set(),
+    };
+
+    // ===== DOM REFS =====
+    const video = document.getElementById('videoPlayer');
+    const canvas = document.getElementById('captureCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ===== INIT =====
+    checkApiHealth();
+    setupUpload();
+    init();
+
+    async function checkApiHealth() {
+      try {
+        const r = await fetch('/api/health');
+        const d = await r.json();
+        if (!d.mimoConfigured) showToast('⚠️ 请先在 .env 中配置 MIMO_API_KEY');
+      } catch { /* server not started */ }
+    }
+
+    async function init() {
+      // Check if video exists
+      let hasVideo = false;
+      try { const r = await fetch('/video.mp4', { method: 'HEAD' }); hasVideo = r.ok; } catch {}
+
+      if (!hasVideo) return;
+
+      // Show player immediately
+      document.getElementById('uploadZone').style.display = 'none';
+      document.getElementById('playerContainer').style.display = 'grid';
+
+      // Show loading overlay on video
+      const wrapper = document.getElementById('videoWrapper');
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'loading-overlay';
+      loadingDiv.id = 'videoLoading';
+      loadingDiv.innerHTML = '<div class="loading-spinner-lg"></div><div class="loading-text">AI 正在分析视频内容...</div>';
+      wrapper.appendChild(loadingDiv);
+
+      // Set video source
+      video.src = '/video.mp4';
+      video.preload = 'auto';
+
+      // When video metadata loads, update duration
+      video.addEventListener('loadedmetadata', () => {
+        S.videoLoaded = true;
+        document.getElementById('timeTotal').textContent = formatTime(video.duration);
+        if (S.analyzed) {
+          // Analysis already loaded, render timeline markers now
+          renderTimelineMarkers();
+        } else {
+          document.getElementById('analyzeBtn').style.display = 'inline-flex';
+        }
+      }, { once: true });
+
+      // Load analysis results in parallel
+      loadAnalysisResults();
+    }
+
+    async function loadAnalysisResults() {
+      try {
+        const res = await fetch('/analysis.json?' + Date.now());
+        if (!res.ok) return;
+        const data = await res.json();
+
+        S.breathingSpots = (data.breathingSpots || []).map(s => ({
+          timestamp: s.timestamp, type: s.type, scene: s.scene,
+        }));
+        S.generatedAds = data.ads || {};
+        S.forbiddenZones = data.forbiddenZones || [];
+        S.analyzed = true;
+
+        if (data.segments) {
+          S.frameAnalysis = data.segments.map(s => ({
+            timestamp: s.start, scene_description: s.scene,
+            emotion_intensity: s.emotion || 5, is_transition: false,
+            suitable_for_ad: !(data.forbiddenZones || []).some(z => s.start >= z.start && s.start < z.end),
+          }));
+        } else {
+          S.frameAnalysis = data.frameAnalysis || [];
+        }
+
+        // Status banner
+        const banner = document.getElementById('analysisStatus');
+        if (banner) {
+          banner.style.display = 'block';
+          banner.innerHTML = `AI 分析已完成 | MiMo 直接视频分析 | ${S.breathingSpots.length} 个呼吸位 | ${Object.keys(S.generatedAds).length} 个互动广告 | ${S.forbiddenZones.length} 个禁止区`;
+        }
+
+        // Update AI panel
+        const aiLog = document.getElementById('aiLog');
+        if (aiLog) {
+          aiLog.innerHTML = '';
+          let delay = 0;
+
+          // Header
+          addLogAnimated(aiLog, '✅', '<strong>已加载 AI 分析结果</strong>', 'log-success', delay += 50);
+          addLogAnimated(aiLog, ' ', '分析方式：MiMo 直接视频分析', '', delay += 50);
+
+          // Segments with emotion bars
+          if (data.segments) {
+            // Build breathing spot lookup
+            const spotMap = {};
+            S.breathingSpots.forEach(s => { spotMap[s.timestamp] = s; });
+
+            data.segments.forEach(s => {
+              const forbidden = (data.forbiddenZones || []).some(z => s.start >= z.start && s.start < z.end);
+              const icon = s.emotion >= 7 ? ' ' : s.emotion <= 3 ? '☕' : '▶️';
+              const cls = forbidden ? 'log-danger' : '';
+              const emotionPct = (s.emotion / 10) * 100;
+              const emotionColor = s.emotion >= 7 ? '#ef4444' : s.emotion >= 4 ? '#f59e0b' : '#10b981';
+
+              // Check if there's a breathing spot at this timestamp
+              const spot = spotMap[s.start];
+              const spotTag = spot ? `<span class="spot-tag ${spot.type}">${spot.type === 'primary' ? '一级呼吸位' : '二级呼吸位'}</span>` : '';
+
+              const text = `${formatTime(s.start)}-${formatTime(s.end)} | ${s.scene}${spotTag}` +
+                `<div class="emotion-bar"><div class="emotion-bar-track"><div class="emotion-bar-fill" style="width:${emotionPct}%;background:${emotionColor}"></div></div><span class="emotion-bar-val">情绪 ${s.emotion}/10</span></div>` +
+                (forbidden ? '<span style="color:#fca5a5;font-size:0.7rem">⛔ 禁止插入广告</span>' : '<span style="color:#6ee7b7;font-size:0.7rem">✅ 适合插入广告</span>');
+
+              addLogAnimated(aiLog, icon, text, cls, delay += 60);
+            });
+          }
+
+          // Summary
+          addLogAnimated(aiLog, ' ', `<strong>检测到 ${S.breathingSpots.length} 个呼吸位</strong>`, 'log-success', delay += 80);
+          addLogAnimated(aiLog, '✨', `<strong>已生成 ${Object.keys(S.generatedAds).length} 个互动广告</strong>`, 'log-success', delay += 50);
+
+          // Ad previews
+          Object.entries(S.generatedAds).forEach(([ts, ad]) => {
+            const text = `${formatTime(parseFloat(ts))} | <strong>${ad.selected_brand}</strong><br>${ad.question}`;
+            addLogAnimated(aiLog, ' ', text, 'log-warning', delay += 60);
+          });
+
+          addLogAnimated(aiLog, '', '点击播放，到呼吸位时自动弹出互动广告', '', delay += 80);
+        }
+
+        // Hide analyze button (defense in depth)
+        document.getElementById('analyzeBtn').style.display = 'none';
+
+        // Remove loading overlay
+        const loadingEl = document.getElementById('videoLoading');
+        if (loadingEl) loadingEl.remove();
+
+        // Render emotion wave
+        renderEmotionWave(data.segments || [], data.forbiddenZones || []);
+
+        showToast('AI 分析结果已加载！');
+      } catch (err) {
+        console.error('Load analysis error:', err);
+        const loadingEl = document.getElementById('videoLoading');
+        if (loadingEl) loadingEl.remove();
+      }
+    }
+
+    function addLogAnimated(container, icon, text, cls, delay) {
+      const li = document.createElement('li');
+      if (cls) li.className = cls;
+      li.innerHTML = `<span class="log-icon">${icon}</span><span class="log-text">${text}</span>`;
+      container.appendChild(li);
+      setTimeout(() => li.classList.add('visible'), delay);
+    }
+
+    // ===== UPLOAD =====
+    function setupUpload() {
+      const zone = document.getElementById('uploadZone');
+      const input = document.getElementById('fileInput');
+
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) loadVideo(e.dataTransfer.files[0]);
+      });
+      input.addEventListener('change', () => { if (input.files.length) loadVideo(input.files[0]); });
+    }
+
+    function loadVideo(file) {
+      if (!file.type.startsWith('video/')) { showToast('请上传视频文件'); return; }
+
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.addEventListener('loadedmetadata', () => {
+        S.videoLoaded = true;
+        document.getElementById('uploadZone').style.display = 'none';
+        document.getElementById('playerContainer').style.display = 'grid';
+        document.getElementById('timeTotal').textContent = formatTime(video.duration);
+        document.getElementById('analyzeBtn').style.display = 'inline-flex';
+        addLog('✅', `<strong>视频已加载</strong><br>时长：${formatTime(video.duration)}`, '');
+
+        if (S.mode === 'ai') {
+          addLog('', '点击「分析视频」按钮<br>让 AI 分析剧情内容', '');
+        }
+        showToast('视频加载成功！');
+      }, { once: true });
+    }
+
+    // ===== MODE SWITCH =====
+    function switchMode(mode) {
+      S.mode = mode;
+      const bO = document.getElementById('btn-original');
+      const bA = document.getElementById('btn-ai');
+      bO.className = 'mode-btn'; bA.className = 'mode-btn';
+      if (mode === 'original') {
+        bO.classList.add('active-original');
+        document.getElementById('aiPanel').style.display = 'none';
+        document.getElementById('analyzeBtn').style.display = 'none';
+      } else {
+        bA.classList.add('active-ai');
+        document.getElementById('aiPanel').style.display = 'block';
+        if (S.videoLoaded) document.getElementById('analyzeBtn').style.display = 'inline-flex';
+      }
+      renderTimelineMarkers();
+    }
+
+    // ===== AI ANALYSIS =====
+    async function startAnalysis() {
+      if (!S.videoLoaded || S.analyzing || S.analyzed) return;
+      S.analyzing = true;
+      S.analyzed = false;
+      S.breathingSpots = [];
+      S.frameAnalysis = [];
+      S.generatedAds = {};
+      S.adTriggeredSet.clear();
+
+      clearLog();
+      const progress = document.getElementById('analyzeProgress');
+      progress.classList.add('visible');
+      document.getElementById('analyzeBtn').disabled = true;
+
+      const duration = video.duration;
+      const interval = Math.max(2, duration / 15); // ~15 frames max
+      const frameCount = Math.floor(duration / interval);
+
+      addLog('', '<strong>开始 AI 分析...</strong>', '');
+      addLog(' ', `将提取 ${frameCount} 帧进行分析<br>每 ${interval.toFixed(1)} 秒一帧`, '');
+
+      const frames = [];
+
+      for (let i = 0; i < frameCount; i++) {
+        const t = Math.min(i * interval + 0.5, duration - 0.1);
+        updateProgress((i / frameCount) * 50, `提取第 ${i + 1}/${frameCount} 帧 (${formatTime(t)})...`);
+
+        const base64 = await captureFrame(t);
+        frames.push({ timestamp: t, imageBase64: base64 });
+      }
+
+      addLog('✅', `帧提取完成，共 ${frames.length} 帧`, '');
+      updateProgress(50, '正在发送到 MiMo AI 分析...');
+
+      // Send frames in batches of 3
+      const batchSize = 3;
+      for (let i = 0; i < frames.length; i += batchSize) {
+        const batch = frames.slice(i, i + batchSize);
+        updateProgress(50 + (i / frames.length) * 40, `AI 分析中 (${Math.min(i + batchSize, frames.length)}/${frames.length})...`);
+
+        try {
+          const res = await fetch('/api/analyze-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ frames: batch }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            S.frameAnalysis.push(...data.results);
+            S.breathingSpots.push(...data.breathingSpots);
+          }
+        } catch (err) {
+          addLog(' ', `分析出错: ${err.message}`, 'log-danger');
+        }
+      }
+
+      // Log analysis results
+      addLog(' ', '<strong>分析完成！检测到以下内容：</strong>', 'log-success');
+      S.frameAnalysis.forEach(r => {
+        const a = r.analysis;
+        const icon = a.emotion_intensity >= 7 ? ' ' : a.is_transition ? ' ' : a.emotion_intensity <= 3 ? '☕' : '▶️';
+        const cls = a.suitable_for_ad ? 'log-success' : 'log-danger';
+        addLog(icon, `${formatTime(r.timestamp)} | ${a.scene_description}<br>情绪：${a.emotion_intensity}/10 | ${a.suitable_for_ad ? '可插广告' : '禁止插入'}`, cls);
+      });
+
+      addLog(' ', `<strong>检测到 ${S.breathingSpots.length} 个呼吸位</strong>`, 'log-success');
+
+      // Generate ads for breathing spots
+      updateProgress(90, '为呼吸位生成情境化广告...');
+      for (const spot of S.breathingSpots) {
+        const frameData = S.frameAnalysis.find(f => Math.abs(f.timestamp - spot.timestamp) < 3);
+        if (frameData) {
+          try {
+            const res = await fetch('/api/generate-ad', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sceneDescription: frameData.analysis.scene_description,
+                emotionIntensity: frameData.analysis.emotion_intensity,
+              }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              S.generatedAds[spot.timestamp] = data.ad;
+              addLog('✨', `${formatTime(spot.timestamp)} 广告已生成<br>品牌：${data.ad.selected_brand}<br>问题：${data.ad.question}`, 'log-success');
+            }
+          } catch (err) {
+            addLog(' ', `广告生成失败: ${err.message}`, 'log-danger');
+          }
+        }
+      }
+
+      updateProgress(100, '分析完成！');
+      setTimeout(() => { progress.classList.remove('visible'); }, 1500);
+
+      S.analyzing = false;
+      S.analyzed = true;
+      document.getElementById('analyzeBtn').disabled = false;
+      renderTimelineMarkers();
+      showToast('AI 分析完成！');
+    }
+
+    function captureFrame(time) {
+      return new Promise(resolve => {
+        video.currentTime = time;
+        video.addEventListener('seeked', () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          resolve(dataUrl.split(',')[1]);
+        }, { once: true });
+      });
+    }
+
+    // ===== PLAYBACK =====
+    function togglePlay() {
+      if (S.adShowing) return;
+      if (video.paused) {
+        video.play();
+        document.getElementById('playBtn').innerHTML = '⏸️ 暂停';
+        S.playing = true;
+      } else {
+        video.pause();
+        document.getElementById('playBtn').innerHTML = '▶️ 播放';
+        S.playing = false;
+      }
+    }
+
+    function resetPlayback() {
+      video.pause();
+      video.currentTime = 0;
+      S.playing = false;
+      S.adShowing = false;
+      S.adTriggeredSet.clear();
+      S.selectedOption = null;
+      hideAdOverlay();
+      document.getElementById('playBtn').innerHTML = '▶️ 播放';
+    }
+
+    // ===== TIMELINE CLICK TO SEEK =====
+    const timelineBar = document.getElementById('timelineBar');
+    const timelineTooltip = document.getElementById('timelineTooltip');
+
+    timelineBar.addEventListener('mousemove', function(e) {
+      if (!S.videoLoaded) return;
+      const rect = this.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const time = pct * video.duration;
+      timelineTooltip.textContent = formatTime(time);
+      timelineTooltip.style.left = `${pct * 100}%`;
+    });
+
+    timelineBar.addEventListener('click', function(e) {
+      if (!S.videoLoaded) return;
+      const rect = this.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      video.currentTime = pct * video.duration;
+    });
+
+    document.getElementById('emotionWave').addEventListener('click', function(e) {
+      if (!S.videoLoaded) return;
+      const rect = this.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      video.currentTime = pct * video.duration;
+    });
+
+    // Video time update
+    video.addEventListener('timeupdate', () => {
+      if (!S.videoLoaded) return;
+      const t = video.currentTime;
+      const d = video.duration;
+      document.getElementById('timelineProgress').style.width = `${(t / d) * 100}%`;
+      document.getElementById('timeCurrent').textContent = formatTime(t);
+
+      // Check ad triggers
+      if (S.mode === 'ai' && S.analyzed && !S.adShowing) {
+        for (const spot of S.breathingSpots) {
+          if (Math.abs(t - spot.timestamp) < 0.5 && !S.adTriggeredSet.has(spot.timestamp)) {
+            S.adTriggeredSet.add(spot.timestamp);
+            video.pause();
+            S.playing = false;
+            showAiAd(spot);
+            break;
+          }
+        }
+      }
+
+      if (S.mode === 'original' && !S.adShowing) {
+        // Original mode: fixed ads at 25%, 50%, 75%
+        const d2 = video.duration;
+        const fixedTimes = [d2 * 0.25, d2 * 0.5, d2 * 0.75];
+        for (const ft of fixedTimes) {
+          if (Math.abs(t - ft) < 0.5 && !S.adTriggeredSet.has(ft)) {
+            S.adTriggeredSet.add(ft);
+            video.pause();
+            S.playing = false;
+            showOriginalAd(ft);
+            break;
+          }
+        }
+      }
+    });
+
+    video.addEventListener('ended', () => {
+      S.playing = false;
+      document.getElementById('playBtn').innerHTML = '▶️ 播放';
+      showToast('播放结束');
+    });
+
+    // ===== AD DISPLAY =====
+    function showOriginalAd(time) {
+      S.adShowing = true;
+      const overlay = document.getElementById('adOverlay');
+      overlay.classList.add('visible');
+      document.getElementById('adTraditional').style.display = 'block';
+      document.getElementById('adCard').style.display = 'none';
+
+      const ads = [
+        { brand: 'XX 汽车', desc: '驾驭未来，从心出发' },
+        { brand: 'YY 手机', desc: '影像旗舰，为热爱而生' },
+        { brand: 'ZZ 电商', desc: '限时特惠，全场五折起' },
+      ];
+      const idx = Math.floor(time / (video.duration / 3)) % ads.length;
+      document.getElementById('adBrandName').textContent = ads[idx].brand;
+      document.getElementById('adBrandDesc').textContent = ads[idx].desc;
+
+      startSkipTimer(() => {
+        hideAdOverlay();
+        video.play();
+        S.playing = true;
+        document.getElementById('playBtn').innerHTML = '⏸️ 暂停';
+      });
+    }
+
+    function showAiAd(spot) {
+      S.adShowing = true;
+      S.selectedOption = null;
+      const overlay = document.getElementById('adOverlay');
+      overlay.classList.add('visible');
+      document.getElementById('adTraditional').style.display = 'none';
+      document.getElementById('adCard').style.display = 'block';
+
+      const ad = S.generatedAds[spot.timestamp];
+      if (!ad) { hideAdOverlay(); return; }
+
+      document.getElementById('adQuestion').textContent = ad.question;
+      document.getElementById('opt0').textContent = ad.option_a;
+      document.getElementById('opt1').textContent = ad.option_b;
+      document.getElementById('adRevealName').textContent = ad.selected_brand;
+      document.getElementById('adRevealMsg').textContent = ad.brand_reveal;
+      document.getElementById('adEasterEgg').textContent = ad.easter_egg || '';
+      document.getElementById('adBrandReveal').classList.remove('visible');
+      document.getElementById('adEasterEgg').classList.remove('visible');
+      document.querySelectorAll('.ad-option').forEach(o => o.classList.remove('selected'));
+
+      startDismissCountdown();
+
+      startSkipTimer(() => {
+        hideAdOverlay();
+        video.play();
+        S.playing = true;
+        document.getElementById('playBtn').innerHTML = '⏸️ 暂停';
+      });
+    }
+
+    function startSkipTimer(onSkip) {
+      let sec = 5;
+      const btn = document.getElementById('adSkipBtn');
+      const txt = document.getElementById('adTimerText');
+      btn.disabled = true;
+      txt.textContent = `${sec}s 后可跳过`;
+
+      const iv = setInterval(() => {
+        sec--;
+        if (sec <= 0) {
+          clearInterval(iv);
+          btn.disabled = false;
+          txt.textContent = '可跳过';
+          btn.onclick = () => { onSkip(); };
+        } else {
+          txt.textContent = `${sec}s 后可跳过`;
+        }
+      }, 1000);
+
+      S._skipInterval = iv;
+    }
+
+    function skipAd() { /* handled by startSkipTimer */ }
+
+    function hideAdOverlay() {
+      document.getElementById('adOverlay').classList.remove('visible');
+      clearInterval(S._skipInterval);
+      clearInterval(S._dismissInterval);
+      S.adShowing = false;
+      S.adSkipReady = false;
+    }
+
+    function selectOption(el, idx) {
+      if (S.selectedOption !== null) return;
+      S.selectedOption = idx;
+      document.querySelectorAll('.ad-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('adBrandReveal').classList.add('visible');
+      const egg = document.getElementById('adEasterEgg');
+      if (egg.textContent) egg.classList.add('visible');
+
+      clearInterval(S._dismissInterval);
+      setTimeout(() => {
+        hideAdOverlay();
+        video.play();
+        S.playing = true;
+        document.getElementById('playBtn').innerHTML = '⏸️ 暂停';
+      }, 4000);
+    }
+
+    function startDismissCountdown() {
+      let sec = 10;
+      document.getElementById('dismissCountdown').textContent = sec;
+      const fill = document.getElementById('adTimerFill');
+      fill.style.transition = 'none';
+      fill.style.width = '100%';
+      requestAnimationFrame(() => {
+        fill.style.transition = 'width 10s linear';
+        fill.style.width = '0%';
+      });
+
+      S._dismissInterval = setInterval(() => {
+        sec--;
+        document.getElementById('dismissCountdown').textContent = sec;
+        if (sec <= 0) {
+          clearInterval(S._dismissInterval);
+          hideAdOverlay();
+          video.play();
+          S.playing = true;
+          document.getElementById('playBtn').innerHTML = '⏸️ 暂停';
+        }
+      }, 1000);
+    }
+
+    // ===== TIMELINE MARKERS =====
+    function renderTimelineMarkers() {
+      const container = document.getElementById('timelineMarkers');
+      container.innerHTML = '';
+      if (!S.videoLoaded) return;
+
+      const d = video.duration;
+
+      if (S.mode === 'ai' && S.analyzed) {
+        S.breathingSpots.forEach(spot => {
+          const m = document.createElement('div');
+          m.className = `timeline-marker ${spot.type}`;
+          m.style.left = `${(spot.timestamp / d) * 100}%`;
+          container.appendChild(m);
+        });
+        // Show forbidden zones from dedicated zones
+        (S.forbiddenZones || []).forEach(z => {
+          const m = document.createElement('div');
+          m.className = 'timeline-marker forbidden';
+          m.style.left = `${(z.start / d) * 100}%`;
+          m.title = z.scene || '禁止插入区';
+          container.appendChild(m);
+        });
+      } else if (S.mode === 'original') {
+        [0.25, 0.5, 0.75].forEach(pct => {
+          const m = document.createElement('div');
+          m.className = 'timeline-marker ad-point';
+          m.style.left = `${pct * 100}%`;
+          container.appendChild(m);
+        });
+      }
+    }
+
+    function renderEmotionWave(segments, forbiddenZones) {
+      const container = document.getElementById('emotionWave');
+      if (!container || !segments.length) return;
+      container.innerHTML = '';
+
+      segments.forEach(s => {
+        const bar = document.createElement('div');
+        const pct = (s.emotion / 10) * 100;
+        const forbidden = forbiddenZones.some(z => s.start >= z.start && s.start < z.end);
+        let color;
+        if (forbidden) color = '#ef4444';
+        else if (s.emotion >= 7) color = '#f59e0b';
+        else if (s.emotion <= 3) color = '#10b981';
+        else color = '#6366f1';
+
+        bar.style.cssText = `flex:1; height:${Math.max(4, pct)}%; background:${color}; border-radius:2px; opacity:0.8; transition:opacity 0.2s; cursor:pointer;`;
+        bar.title = `${formatTime(s.start)} 情绪${s.emotion}/10 - ${s.scene}`;
+        container.appendChild(bar);
+      });
+    }
+
+    // ===== AI LOG =====
+    function addLog(icon, text, cls = '') {
+      const log = document.getElementById('aiLog');
+      const li = document.createElement('li');
+      if (cls) li.className = cls;
+      li.innerHTML = `<span class="log-icon">${icon}</span><span class="log-text">${text}</span>`;
+      log.appendChild(li);
+      requestAnimationFrame(() => li.classList.add('visible'));
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function clearLog() { document.getElementById('aiLog').innerHTML = ''; }
+
+    // ===== UTILS =====
+    function formatTime(s) {
+      if (!s || isNaN(s)) return '00:00';
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function updateProgress(pct, text) {
+      document.getElementById('progressFill').style.width = `${pct}%`;
+      document.getElementById('progressText').textContent = text;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+  </script>
+</body>
+</html>
