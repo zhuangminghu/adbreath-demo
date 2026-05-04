@@ -1,0 +1,395 @@
+{
+  "videoInfo": {
+    "path": "C:\\Users\\31522\\Desktop\\项目\\demo\\public\\video.mp4",
+    "duration": 1419.498333,
+    "analyzedAt": "2026-05-03T11:38:51.227Z",
+    "method": "direct_video_analysis"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 20,
+      "scene": "开场广告与标题动画，展示酸奶柠檬广告及《中国奇谭》标题。",
+      "emotion": 3,
+      "tags": [
+        "广告",
+        "片头",
+        "动画"
+      ]
+    },
+    {
+      "start": 116,
+      "end": 146,
+      "scene": "干旱的村庄，村民抱怨缺水，三条蛇在洞穴中饥饿难耐。",
+      "emotion": 6,
+      "tags": [
+        "干旱",
+        "村民",
+        "蛇",
+        "饥饿"
+      ]
+    },
+    {
+      "start": 162,
+      "end": 202,
+      "scene": "三条蛇假装龙王享用供奉的香火，讨论如何维持骗局。",
+      "emotion": 4,
+      "tags": [
+        "骗局",
+        "香火",
+        "对话"
+      ]
+    },
+    {
+      "start": 237,
+      "end": 262,
+      "scene": "村民怀疑龙王不灵验要拆庙，蛇惊慌失措发出怪声吓退村民。",
+      "emotion": 7,
+      "tags": [
+        "冲突",
+        "惊吓",
+        "转折"
+      ]
+    },
+    {
+      "start": 300,
+      "end": 325,
+      "scene": "村民再次聚集要拆庙，大蛇被迫许诺三日内降雨，暂时稳住局面。",
+      "emotion": 8,
+      "tags": [
+        "许诺",
+        "紧张",
+        "关键剧情"
+      ]
+    },
+    {
+      "start": 414,
+      "end": 453,
+      "scene": "三蛇化身扁担挑水，幻想成神后的荣耀，以此激励自己。",
+      "emotion": 5,
+      "tags": [
+        "变身",
+        "劳作",
+        "幻想"
+      ]
+    },
+    {
+      "start": 659,
+      "end": 693,
+      "scene": "三蛇在庙中享用供奉的鱼，大蛇感叹想要手脚的渴望。",
+      "emotion": 3,
+      "tags": [
+        "进食",
+        "渴望",
+        "日常"
+      ]
+    },
+    {
+      "start": 765,
+      "end": 793,
+      "scene": "三蛇享受香火，大蛇头上长出龙角，法力增强。",
+      "emotion": 6,
+      "tags": [
+        "变身",
+        "魔法",
+        "成长"
+      ]
+    },
+    {
+      "start": 828,
+      "end": 860,
+      "scene": "真正的龙王（或天神）降临发怒，摧毁庙宇，村民四散奔逃。",
+      "emotion": 9,
+      "tags": [
+        "高潮",
+        "灾难",
+        "恐惧"
+      ]
+    },
+    {
+      "start": 960,
+      "end": 1007,
+      "scene": "大蛇为了保护村庄和小女孩，独自面对天神的雷击，英勇牺牲。",
+      "emotion": 10,
+      "tags": [
+        "牺牲",
+        "战斗",
+        "高潮"
+      ]
+    },
+    {
+      "start": 1028,
+      "end": 1066,
+      "scene": "大蛇化为灰烬，二蛇三蛇悲痛欲绝，村庄在雨后重生。",
+      "emotion": 10,
+      "tags": [
+        "死亡",
+        "悲伤",
+        "结局"
+      ]
+    },
+    {
+      "start": 1189,
+      "end": 1222,
+      "scene": "片尾，二蛇三蛇继续守护村庄，画面定格在重建的龙王庙。",
+      "emotion": 4,
+      "tags": [
+        "尾声",
+        "平静",
+        "余韵"
+      ]
+    }
+  ],
+  "frameAnalysis": [
+    {
+      "timestamp": 0,
+      "scene_description": "开场广告与标题动画，展示酸奶柠檬广告及《中国奇谭》标题。",
+      "emotion_intensity": 3,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "广告",
+        "片头",
+        "动画"
+      ]
+    },
+    {
+      "timestamp": 116,
+      "scene_description": "干旱的村庄，村民抱怨缺水，三条蛇在洞穴中饥饿难耐。",
+      "emotion_intensity": 6,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "干旱",
+        "村民",
+        "蛇",
+        "饥饿"
+      ]
+    },
+    {
+      "timestamp": 162,
+      "scene_description": "三条蛇假装龙王享用供奉的香火，讨论如何维持骗局。",
+      "emotion_intensity": 4,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "骗局",
+        "香火",
+        "对话"
+      ]
+    },
+    {
+      "timestamp": 237,
+      "scene_description": "村民怀疑龙王不灵验要拆庙，蛇惊慌失措发出怪声吓退村民。",
+      "emotion_intensity": 7,
+      "is_transition": false,
+      "suitable_for_ad": false,
+      "content_tags": [
+        "冲突",
+        "惊吓",
+        "转折"
+      ]
+    },
+    {
+      "timestamp": 300,
+      "scene_description": "村民再次聚集要拆庙，大蛇被迫许诺三日内降雨，暂时稳住局面。",
+      "emotion_intensity": 8,
+      "is_transition": false,
+      "suitable_for_ad": false,
+      "content_tags": [
+        "许诺",
+        "紧张",
+        "关键剧情"
+      ]
+    },
+    {
+      "timestamp": 414,
+      "scene_description": "三蛇化身扁担挑水，幻想成神后的荣耀，以此激励自己。",
+      "emotion_intensity": 5,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "变身",
+        "劳作",
+        "幻想"
+      ]
+    },
+    {
+      "timestamp": 659,
+      "scene_description": "三蛇在庙中享用供奉的鱼，大蛇感叹想要手脚的渴望。",
+      "emotion_intensity": 3,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "进食",
+        "渴望",
+        "日常"
+      ]
+    },
+    {
+      "timestamp": 765,
+      "scene_description": "三蛇享受香火，大蛇头上长出龙角，法力增强。",
+      "emotion_intensity": 6,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "变身",
+        "魔法",
+        "成长"
+      ]
+    },
+    {
+      "timestamp": 828,
+      "scene_description": "真正的龙王（或天神）降临发怒，摧毁庙宇，村民四散奔逃。",
+      "emotion_intensity": 9,
+      "is_transition": false,
+      "suitable_for_ad": false,
+      "content_tags": [
+        "高潮",
+        "灾难",
+        "恐惧"
+      ]
+    },
+    {
+      "timestamp": 960,
+      "scene_description": "大蛇为了保护村庄和小女孩，独自面对天神的雷击，英勇牺牲。",
+      "emotion_intensity": 10,
+      "is_transition": false,
+      "suitable_for_ad": false,
+      "content_tags": [
+        "牺牲",
+        "战斗",
+        "高潮"
+      ]
+    },
+    {
+      "timestamp": 1028,
+      "scene_description": "大蛇化为灰烬，二蛇三蛇悲痛欲绝，村庄在雨后重生。",
+      "emotion_intensity": 10,
+      "is_transition": false,
+      "suitable_for_ad": false,
+      "content_tags": [
+        "死亡",
+        "悲伤",
+        "结局"
+      ]
+    },
+    {
+      "timestamp": 1189,
+      "scene_description": "片尾，二蛇三蛇继续守护村庄，画面定格在重建的龙王庙。",
+      "emotion_intensity": 4,
+      "is_transition": false,
+      "suitable_for_ad": true,
+      "content_tags": [
+        "尾声",
+        "平静",
+        "余韵"
+      ]
+    }
+  ],
+  "breathingSpots": [
+    {
+      "timestamp": 20,
+      "type": "primary",
+      "scene": "广告结束，进入制作公司Logo展示。",
+      "reason": "明显的黑场转场和内容分割点。"
+    },
+    {
+      "timestamp": 115,
+      "type": "primary",
+      "scene": "片头字幕结束，正片故事开始。",
+      "reason": "章节结束，进入叙事正题。"
+    },
+    {
+      "timestamp": 325,
+      "type": "secondary",
+      "scene": "许诺降雨后，蛇离开村庄去寻找水源。",
+      "reason": "节奏从紧张的对峙转为平静的旅途。"
+    },
+    {
+      "timestamp": 553,
+      "type": "secondary",
+      "scene": "蛇被村民发现并追赶后逃脱，画面转黑。",
+      "reason": "激烈的追逐戏结束，情绪回落。"
+    },
+    {
+      "timestamp": 900,
+      "type": "secondary",
+      "scene": "天神摧毁庙宇后，画面转为废墟中的平静。",
+      "reason": "高潮过后的短暂平静，适合插入广告。"
+    },
+    {
+      "timestamp": 1188,
+      "type": "primary",
+      "scene": "故事结束，进入片尾字幕。",
+      "reason": "叙事完全结束。"
+    }
+  ],
+  "forbiddenZones": [
+    {
+      "start": 237,
+      "end": 262,
+      "scene": "村民要拆庙，蛇发出怪声吓人。",
+      "reason": "剧情冲突点，观众注意力高度集中。"
+    },
+    {
+      "start": 300,
+      "end": 325,
+      "scene": "大蛇许诺三日降雨。",
+      "reason": "关键剧情转折点，决定后续发展。"
+    },
+    {
+      "start": 828,
+      "end": 860,
+      "scene": "天神降临，雷电交加，庙宇被毁。",
+      "reason": "全片高潮，视觉和听觉冲击力最强。"
+    },
+    {
+      "start": 960,
+      "end": 1007,
+      "scene": "大蛇独自对抗天神，被雷劈中。",
+      "reason": "情感爆发点，主角牺牲的高能时刻。"
+    },
+    {
+      "start": 1028,
+      "end": 1066,
+      "scene": "大蛇死亡，兄弟悲痛。",
+      "reason": "极度悲伤的情绪段落，打断会破坏沉浸感。"
+    }
+  ],
+  "ads": {
+    "115": {
+      "selected_brand": "小米",
+      "question": "你的故事，从哪个瞬间开始？",
+      "option_a": "一个决定",
+      "option_b": "一次相遇",
+      "brand_reveal": "用小米14 Ultra，定格每个故事的起点。徕卡光学，让开篇即成经典。",
+      "easter_egg": "点击屏幕任意位置，为你的故事添加第一个滤镜（模拟小米影像大脑实时调色）"
+    },
+    "325": {
+      "selected_brand": "清泉净水",
+      "question": "当承诺迟迟未兑现，你会选择继续等待，还是主动寻找出路？",
+      "option_a": "继续等待降雨",
+      "option_b": "主动寻找新水源",
+      "brand_reveal": "清泉净水——让每一滴承诺都清澈兑现。即使天不降雨，我们也能为你净化出值得信赖的水源。",
+      "easter_egg": "蛇的内心OS：早知道就带个清泉净水器出门了，至少不用爬这么远找水喝！"
+    },
+    "553": {
+      "selected_brand": "蒙牛",
+      "question": "三条蛇忙了一整天，如果是你，此刻最想做什么？",
+      "option_a": "好好吃一顿",
+      "option_b": "找个地方躺平",
+      "brand_reveal": "忙碌之后，值得给自己补一补。蒙牛纯牛奶，每天一杯，为生活蓄力。",
+      "easter_egg": "据说编剧写这段的时候，桌上就放着一盒牛奶，写着"蛇也需要补钙""
+    },
+    "1188": {
+      "selected_brand": "时光慢递",
+      "question": "如果这个故事还有续集，你最想对哪个角色说一句话？",
+      "option_a": "主动联系TA",
+      "option_b": "默默珍藏这段回忆",
+      "brand_reveal": "无论选择重逢还是珍藏，每一段深刻的情感都值得被妥善安放。时光慢递，为你封存此刻的心意，在未来的某一天，送达那个重要的人或曾经的自己。",
+      "easter_egg": "彩蛋藏在字幕最后——扫描二维码，可生成专属你的「故事续集」电子明信片，分享给片中你最牵挂的角色（或现实中的TA）。"
+    }
+  },
+  "generatedAt": "2026-05-03T11:38:51.228Z"
+}
