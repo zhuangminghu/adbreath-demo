@@ -497,7 +497,7 @@
     async function init() {
       // Check if video exists
       let hasVideo = false;
-      try { const r = await fetch('/video.mp4', { method: 'HEAD' }); hasVideo = r.ok; } catch {}
+      try { const r = await fetch('video.mp4', { method: 'HEAD' }); hasVideo = r.ok; } catch {}
 
       if (!hasVideo) return;
 
@@ -514,7 +514,7 @@
       wrapper.appendChild(loadingDiv);
 
       // Set video source
-      video.src = '/video.mp4';
+      video.src = 'video.mp4';
       video.preload = 'auto';
 
       // When video metadata loads, update duration
@@ -535,7 +535,7 @@
 
     async function loadAnalysisResults() {
       try {
-        const res = await fetch('/analysis.json?' + Date.now());
+        const res = await fetch('analysis.json?' + Date.now());
         if (!res.ok) return;
         const data = await res.json();
 
